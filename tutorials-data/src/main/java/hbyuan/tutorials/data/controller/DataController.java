@@ -2,7 +2,9 @@ package hbyuan.tutorials.data.controller;
 
 import hbyuan.tutorials.data.bean.Department;
 import hbyuan.tutorials.data.bean.Employee;
+import hbyuan.tutorials.data.bean.Field;
 import hbyuan.tutorials.data.bean.Position;
+import hbyuan.tutorials.data.entity.FieldEO;
 import hbyuan.tutorials.data.service.DataService;
 
 import java.util.List;
@@ -61,4 +63,27 @@ public class DataController {
 		return userId;
 	}
 
+	@PostMapping(value = "/field/standard/list")
+	public List<FieldEO> saveStandardFieldList(@RequestBody List<Field> fields) {
+		logger.info("Start saving standrad files...");
+		List<FieldEO> fieldList = null;
+		try {
+			fieldList = service.saveStandardFieldList(fields);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return fieldList;
+	}
+	
+	@PostMapping(value = "/field/standard/status")
+	public FieldEO saveStatusField(@RequestBody Field status) {
+		logger.info("Start saving status file...");
+		FieldEO field = null;
+		try {
+			field = service.saveStatusField(status);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return field;
+	}
 }

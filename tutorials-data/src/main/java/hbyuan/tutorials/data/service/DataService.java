@@ -3,13 +3,19 @@ package hbyuan.tutorials.data.service;
 import hbyuan.tutorials.data.bean.Department;
 import hbyuan.tutorials.data.bean.EmergencyContact;
 import hbyuan.tutorials.data.bean.Employee;
+import hbyuan.tutorials.data.bean.FieldEnumOption;
+import hbyuan.tutorials.data.bean.Field;
 import hbyuan.tutorials.data.bean.Position;
 import hbyuan.tutorials.data.dao.DepartmentDao;
+import hbyuan.tutorials.data.dao.FieldEnumDao;
+import hbyuan.tutorials.data.dao.FieldDao;
 import hbyuan.tutorials.data.dao.PersonDao;
 import hbyuan.tutorials.data.dao.PositionDao;
 import hbyuan.tutorials.data.dao.UserAuthenticationDao;
 import hbyuan.tutorials.data.dao.UserDao;
 import hbyuan.tutorials.data.entity.DepartmentEO;
+import hbyuan.tutorials.data.entity.FieldEnumOptionEO;
+import hbyuan.tutorials.data.entity.FieldEO;
 import hbyuan.tutorials.data.entity.PersonEO;
 import hbyuan.tutorials.data.entity.PositionEO;
 import hbyuan.tutorials.data.entity.UserAuthenticationEO;
@@ -45,6 +51,12 @@ public class DataService {
 
 	@Autowired
 	private DepartmentDao departmentDao;
+
+	@Autowired
+	private FieldDao standardFieldDao;
+
+	@Autowired
+	private FieldEnumDao enumDao;
 
 	public Long saveDepartment(Department department) {
 		DepartmentEO entity = new DepartmentEO();
@@ -122,5 +134,56 @@ public class DataService {
 		auth = userAuthDao.save(auth);
 
 		return user.getUserId();
+	}
+
+	public List<FieldEO> saveStandardFieldList(List<Field> fields) {
+		List<FieldEO> fieldEOs = new ArrayList<FieldEO>();
+		for (Field field : fields) {
+			FieldEO fieldEO = new FieldEO();
+			fieldEO.setFieldName(field.getFieldName());
+			// fieldEO.setParent(null);
+			String type = field.getType();
+			fieldEO.setType(type);
+			if (type.equals("ENUM")) {
+				List<FieldEnumOption> options = field.getEnumOptions();
+				List<FieldEnumOptionEO> enumEOs = new ArrayList<FieldEnumOptionEO>();
+				for (FieldEnumOption option : options) {
+					FieldEnumOptionEO enumEO = new FieldEnumOptionEO();
+					enumEO.setLabel(option.getLabel());
+					enumEO.setStandardField(fieldEO);
+					enumEOs.add(enumEO);
+				}
+				enumEOs = enumDao.save(enumEOs);
+				fieldEO.setEnumOptions(enumEOs);
+			}
+			if (type.equals("TABLE")) {
+				// TODO
+				continue;
+			}
+			fieldEO = standardFieldDao.save(fieldEO);
+			fieldEOs.add(fieldEO);
+		}
+
+		return fieldEOs;
+	}
+
+	public FieldEO saveStatusField(Field field) {
+		FieldEO fieldEntity = new FieldEO();
+		fieldEntity.setFieldName(field.getFieldName());
+		fieldEntity.setType(field.getType());
+
+		// save options
+		List<FieldEnumOptionEO> enumEntities = new ArrayList<FieldEnumOptionEO>();
+		for (FieldEnumOption option : field.getEnumOptions()) {
+			FieldEnumOptionEO enumEntity = new FieldEnumOptionEO();
+			enumEntity.setLabel(option.getLabel());
+			enumEntity.setStandardField(fieldEntity);
+			enumEntities.add(enumEntity);
+		}
+		fieldEntity.setEnumOptions(enumEntities);
+
+		fieldEntity = standardFieldDao.save(fieldEntity);
+
+		return fieldEntity;
 	}
 }
